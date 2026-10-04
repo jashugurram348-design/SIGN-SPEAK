@@ -1,0 +1,9 @@
+# SignSpeak Database Requirements
+
+Flask==3.1.2
+python-dotenv==1.1.1
+# SignSpeak Database
+# SQLite (sqlite3) is included with Python.
+
+python3 -m pip install -r requirements.
+import sqlite3

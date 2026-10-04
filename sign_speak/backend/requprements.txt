@@ -1,0 +1,27 @@
+Flask==3.1.2
+python-dotenv==1.1.1
+# SignSpeak Backend Dependencies
+
+Flask==3.1.2
+python-dotenv==1.1.1
+python3 -m pip install -r requirements.txt
+SignSpeak/
+│
+├── app.py
+├── requirements.txt
+├── .env
+├── .env.example
+├── .gitignore
+├── README.md
+│
+├── templates/
+│   ├── index.html
+│   ├── dictionary.html
+│   ├── history.html
+│   └── learn.html
+│
+└── static/
+    ├── style.css
+    └── script.js
+    python3 app.py
+    http://127.0.0.1:5000

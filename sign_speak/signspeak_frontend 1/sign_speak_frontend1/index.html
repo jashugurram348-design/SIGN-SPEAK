@@ -1,0 +1,2783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SignSpeak - AI Sign Language Translator</title>
+
+<style>
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+
+    background:
+        radial-gradient(
+            circle at 50% 20%,
+            #1734c7 0%,
+            #0c1d91 30%,
+            #050943 68%,
+            #02021d 100%
+        );
+}
+
+button,
+input,
+textarea {
+    font-family: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.page {
+    display: none;
+    min-height: calc(100vh - 60px);
+}
+
+.page.active {
+    display: block;
+}
+
+
+/* =========================================================
+   NAVBAR
+========================================================= */
+
+.navbar {
+    height: 60px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 55px;
+
+    background: rgba(3, 6, 42, 0.82);
+
+    border-bottom:
+        1px solid rgba(55, 100, 255, 0.35);
+
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    backdrop-filter: blur(12px);
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+}
+
+.logo span {
+    color: #12d8ff;
+}
+
+.nav-links {
+    display: flex;
+    gap: 34px;
+}
+
+.nav-links a {
+    color: #7d9aed;
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    transition: 0.25s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: #16d9ff;
+}
+
+
+/* =========================================================
+   COMMON
+========================================================= */
+
+.container {
+    width: 92%;
+    max-width: 1150px;
+    margin: auto;
+}
+
+.section-title {
+    text-align: center;
+
+    font-size: 42px;
+    font-weight: 800;
+
+    margin-bottom: 12px;
+
+    text-shadow:
+        0 0 18px rgba(120, 170, 255, 0.25);
+}
+
+.section-subtitle {
+    text-align: center;
+
+    color: #8aaeff;
+
+    font-size: 17px;
+    font-weight: 600;
+
+    margin-bottom: 40px;
+}
+
+
+/* =========================================================
+   TRANSLATE PAGE
+========================================================= */
+
+.translate-page {
+    padding:
+        50px 0 80px;
+}
+
+.translate-heading {
+    text-align: center;
+}
+
+.translate-heading h1 {
+    font-size: 48px;
+    margin-bottom: 14px;
+}
+
+.translate-heading h1 span {
+    color: #12d8ff;
+}
+
+.translate-heading p {
+    color: #9ab8ff;
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.ai-badge {
+    display: inline-block;
+
+    margin-bottom: 20px;
+
+    padding: 9px 18px;
+
+    border-radius: 30px;
+
+    color: #1bdcff;
+
+    background:
+        rgba(0, 122, 255, 0.15);
+
+    border:
+        1px solid rgba(0, 170, 255, 0.35);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+/* Translation switch */
+
+.translation-switch {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    gap: 10px;
+
+    margin: 42px 0 30px;
+}
+
+.mode-btn {
+    padding: 13px 25px;
+
+    border-radius: 12px;
+
+    border: 1px solid rgba(20, 90, 255, 0.45);
+
+    color: #7ca5ff;
+
+    background:
+        rgba(5, 20, 110, 0.6);
+
+    font-weight: 700;
+
+    transition: 0.25s;
+}
+
+.mode-btn.active {
+    color: #063a78;
+
+    background:
+        linear-gradient(
+            135deg,
+            #1ce1ff,
+            #1b9dff
+        );
+
+    box-shadow:
+        0 0 20px rgba(0, 190, 255, 0.25);
+}
+
+.swap-btn {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 12px;
+
+    border: 1px solid #1b74ff;
+
+    background: #07147a;
+
+    color: #16d8ff;
+
+    font-size: 20px;
+}
+
+
+/* Translator box */
+
+.translator-box {
+    padding: 32px;
+
+    border-radius: 18px;
+
+    border:
+        1px solid rgba(45, 100, 255, 0.65);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(8, 30, 130, 0.75),
+            rgba(5, 10, 65, 0.82)
+        );
+
+    box-shadow:
+        0 0 30px rgba(0, 50, 255, 0.12);
+}
+
+.translation-columns {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 24px;
+}
+
+.translation-column h3 {
+    color: #c7dcff;
+
+    font-size: 14px;
+
+    margin-bottom: 12px;
+}
+
+.text-area {
+    width: 100%;
+    height: 175px;
+
+    resize: none;
+
+    padding: 18px;
+
+    border-radius: 12px;
+
+    border:
+        1px solid rgba(38, 78, 255, 0.5);
+
+    outline: none;
+
+    color: white;
+
+    background:
+        rgba(1, 8, 62, 0.75);
+
+    font-size: 16px;
+}
+
+.text-area:focus {
+    border-color: #13d9ff;
+
+    box-shadow:
+        0 0 15px rgba(0, 200, 255, 0.12);
+}
+
+.text-area::placeholder {
+    color: #4b67cf;
+}
+
+
+/* Sign output */
+
+.sign-output {
+    height: 175px;
+
+    border-radius: 12px;
+
+    border:
+        1px solid rgba(38, 78, 255, 0.5);
+
+    background:
+        rgba(1, 8, 62, 0.75);
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    color: #6287e8;
+}
+
+.sign-output .hand {
+    font-size: 50px;
+    margin-bottom: 12px;
+}
+
+.sign-result {
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+
+/* Quick buttons */
+
+.quick-buttons {
+    display: flex;
+    gap: 8px;
+
+    flex-wrap: wrap;
+
+    margin-top: 14px;
+}
+
+.quick-btn {
+    padding: 9px 14px;
+
+    border-radius: 9px;
+
+    border: 1px solid rgba(35, 90, 255, 0.4);
+
+    color: #7da5ff;
+
+    background: rgba(4, 18, 100, 0.7);
+
+    font-size: 12px;
+}
+
+.quick-btn:hover {
+    border-color: #11d9ff;
+    color: #11d9ff;
+}
+
+
+/* Translate button */
+
+.translate-action {
+    display: block;
+
+    margin: 24px auto 0;
+
+    padding: 14px 35px;
+
+    border: none;
+
+    border-radius: 11px;
+
+    color: #063c79;
+
+    background:
+        linear-gradient(
+            135deg,
+            #18dcff,
+            #168fff
+        );
+
+    font-weight: 800;
+
+    font-size: 15px;
+
+    box-shadow:
+        0 0 18px rgba(0, 190, 255, 0.15);
+}
+
+.translate-action:hover {
+    transform: translateY(-2px);
+}
+
+
+/* Feature cards */
+
+.feature-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 18px;
+
+    margin-top: 45px;
+}
+
+.feature-card {
+    padding: 28px;
+
+    min-height: 135px;
+
+    border-radius: 16px;
+
+    border:
+        1px solid rgba(38, 88, 255, 0.55);
+
+    background:
+        rgba(5, 18, 90, 0.65);
+}
+
+.feature-icon {
+    font-size: 25px;
+    margin-bottom: 18px;
+}
+
+.feature-card h3 {
+    font-size: 16px;
+    margin-bottom: 9px;
+}
+
+.feature-card p {
+    color: #7396ec;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   DICTIONARY
+========================================================= */
+
+.dictionary-page {
+    padding:
+        45px 0 80px;
+}
+
+.search-box {
+    width: 70%;
+    margin: 0 auto 24px;
+
+    position: relative;
+}
+
+.search-box input {
+    width: 100%;
+
+    padding: 17px 22px;
+
+    border-radius: 13px;
+
+    border:
+        1px solid rgba(45, 90, 255, 0.65);
+
+    outline: none;
+
+    background:
+        rgba(4, 13, 80, 0.75);
+
+    color: white;
+
+    font-size: 16px;
+}
+
+.search-box input::placeholder {
+    color: #5374db;
+}
+
+
+/* Categories */
+
+.categories {
+    display: flex;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 9px;
+
+    margin-bottom: 35px;
+}
+
+.category-btn {
+    padding: 11px 17px;
+
+    border-radius: 9px;
+
+    border:
+        1px solid rgba(38, 83, 255, 0.5);
+
+    background:
+        rgba(4, 17, 90, 0.7);
+
+    color: #80a3ff;
+
+    font-weight: 700;
+
+    font-size: 13px;
+}
+
+.category-btn.active {
+    color: #064080;
+
+    background:
+        linear-gradient(
+            135deg,
+            #19dfff,
+            #199cff
+        );
+}
+
+
+/* Dictionary count */
+
+.sign-count {
+    text-align: center;
+
+    color: #6191ee;
+
+    font-size: 14px;
+
+    margin-bottom: 20px;
+}
+
+
+/* Sign grid */
+
+.sign-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, 1fr);
+
+    gap: 12px;
+}
+
+.sign-card {
+    min-height: 125px;
+
+    padding: 18px 10px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    text-align: center;
+
+    border-radius: 15px;
+
+    border:
+        1px solid rgba(37, 83, 255, 0.6);
+
+    background:
+        rgba(5, 18, 100, 0.65);
+
+    transition:
+        0.25s;
+}
+
+.sign-card:hover {
+    transform: translateY(-3px);
+
+    border-color: #12d9ff;
+
+    box-shadow:
+        0 0 18px rgba(0, 180, 255, 0.15);
+}
+
+.sign-emoji {
+    font-size: 35px;
+    margin-bottom: 10px;
+}
+
+.sign-card h3 {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.sign-category {
+    color: #5585e8;
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+.history-page {
+    padding:
+        50px 0 100px;
+}
+
+.history-empty {
+    min-height: 400px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+}
+
+.history-empty-icon {
+    font-size: 55px;
+
+    color: #227dff;
+
+    margin-bottom: 25px;
+}
+
+.history-empty h2 {
+    color: #4ba1ff;
+
+    font-size: 19px;
+
+    margin-bottom: 12px;
+}
+
+.history-empty p {
+    color: #3e6ed7;
+
+    font-size: 14px;
+}
+
+.history-list {
+    max-width: 900px;
+
+    margin: auto;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 13px;
+}
+
+.history-card {
+    padding: 20px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    border-radius: 13px;
+
+    border:
+        1px solid rgba(38, 88, 255, 0.6);
+
+    background:
+        rgba(5, 20, 100, 0.7);
+}
+
+.history-original {
+    font-weight: 800;
+    margin-bottom: 7px;
+}
+
+.history-translated {
+    color: #5d99f7;
+}
+
+.history-date {
+    color: #4568ba;
+    font-size: 11px;
+    margin-top: 8px;
+}
+
+
+/* =========================================================
+   LEARN
+========================================================= */
+
+.learn-page {
+    padding:
+        40px 0 80px;
+}
+
+.progress-box {
+    width: 90%;
+
+    margin:
+        0 auto 45px;
+
+    padding: 24px 27px;
+
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(17, 52, 188, 0.7),
+            rgba(7, 25, 112, 0.75)
+        );
+
+    border:
+        1px solid rgba(48, 107, 255, 0.7);
+}
+
+.progress-top {
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-bottom: 15px;
+}
+
+.progress-title {
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.progress-percent {
+    color: #13d9ff;
+    font-weight: 800;
+}
+
+.progress-track {
+    height: 9px;
+
+    border-radius: 20px;
+
+    background:
+        rgba(0, 16, 105, 0.75);
+
+    overflow: hidden;
+
+    margin-bottom: 14px;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #0de0ff,
+            #2384ff
+        );
+
+    transition: width 0.4s;
+}
+
+.progress-info {
+    color: #71a5ff;
+    font-size: 14px;
+}
+
+
+.lesson-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 18px;
+}
+
+.lesson-card {
+    padding: 24px;
+
+    border-radius: 17px;
+
+    border:
+        1px solid rgba(49, 109, 255, 0.65);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(19, 54, 194, 0.78),
+            rgba(8, 25, 112, 0.85)
+        );
+
+    transition: 0.25s;
+}
+
+.lesson-card:hover {
+    border-color: #15d8ff;
+}
+
+.lesson-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 16px;
+}
+
+.lesson-icon {
+    width: 60px;
+    height: 60px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #19e4ff,
+            #19baff
+        );
+
+    font-size: 28px;
+}
+
+.lesson-info {
+    flex: 1;
+}
+
+.lesson-info h2 {
+    font-size: 19px;
+    margin-bottom: 7px;
+}
+
+.lesson-info p {
+    color: #9ac0ff;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+}
+
+.lesson-arrow {
+    color: #56b5ff;
+    font-size: 25px;
+}
+
+.lesson-progress {
+    display: flex;
+
+    gap: 10px;
+
+    align-items: center;
+
+    margin-top: 17px;
+}
+
+.lesson-progress-track {
+    flex: 1;
+
+    height: 5px;
+
+    background:
+        rgba(0, 13, 85, 0.8);
+
+    border-radius: 20px;
+
+    overflow: hidden;
+}
+
+.lesson-progress-fill {
+    height: 100%;
+
+    width: 0%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #10ddff,
+            #2878ff
+        );
+}
+
+.lesson-percent {
+    font-size: 12px;
+    color: #7aa7ff;
+}
+
+.lesson-content {
+    margin-top: 20px;
+
+    padding-top: 10px;
+
+    border-top:
+        1px solid rgba(73, 120, 255, 0.3);
+}
+
+.lesson-item {
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+    padding: 11px 0;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.lesson-circle {
+    width: 22px;
+    height: 22px;
+
+    border-radius: 50%;
+
+    border:
+        2px solid #159cff;
+}
+
+.lesson-item.completed .lesson-circle {
+    background: #12dfff;
+    border-color: #12dfff;
+
+    position: relative;
+}
+
+.lesson-item.completed .lesson-circle::after {
+    content: "✓";
+
+    position: absolute;
+
+    color: #063783;
+
+    font-size: 13px;
+
+    left: 4px;
+    top: 0;
+}
+
+.lesson-item.completed {
+    color: #76aaff;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {
+    min-height: 170px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 27px;
+
+    border-top:
+        1px solid rgba(50, 80, 255, 0.18);
+
+    background:
+        rgba(2, 6, 42, 0.75);
+
+    text-align: center;
+}
+
+.footer-text {
+    color: #416bd2;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.footer-bottom {
+    color: #3e70dd;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.heart {
+    color: #11d9ff;
+    font-size: 18px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width: 900px) {
+
+    .sign-grid {
+        grid-template-columns:
+            repeat(3, 1fr);
+    }
+
+    .lesson-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .translation-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 650px) {
+
+    .navbar {
+        padding: 0 20px;
+    }
+
+    .nav-links {
+        gap: 12px;
+    }
+
+    .nav-links a {
+        font-size: 11px;
+    }
+
+    .section-title {
+        font-size: 31px;
+    }
+
+    .translate-heading h1 {
+        font-size: 34px;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .sign-grid {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .translator-box {
+        padding: 18px;
+    }
+}
+
+@media(max-width: 450px) {
+
+    .nav-links {
+        display: none;
+    }
+
+    .sign-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .translation-switch {
+        flex-wrap: wrap;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+
+<nav class="navbar">
+
+    <div class="logo">
+        Sign<span>Speak</span>
+    </div>
+
+    <div class="nav-links">
+
+        <a href="#" class="nav-link active"
+           data-page="translate">
+            Translate
+        </a>
+
+        <a href="#" class="nav-link"
+           data-page="dictionary">
+            Dictionary
+        </a>
+
+        <a href="#" class="nav-link"
+           data-page="history">
+            History
+        </a>
+
+        <a href="#" class="nav-link"
+           data-page="learn">
+            Learn
+        </a>
+
+    </div>
+
+</nav>
+
+
+
+<!-- =========================================================
+     TRANSLATE PAGE
+========================================================= -->
+
+<section
+    id="translate"
+    class="page active translate-page"
+>
+
+<div class="container">
+
+    <div class="translate-heading">
+
+        <div class="ai-badge">
+            ✨ AI-Powered Translation
+        </div>
+
+        <h1>
+            Bridge the gap with
+            <span>Sign Language</span>
+        </h1>
+
+        <p>
+            Translate between sign language and text in
+            <br>
+            real time. Powered by AI, built for accessibility.
+        </p>
+
+    </div>
+
+
+    <!-- Translation Mode -->
+
+    <div class="translation-switch">
+
+        <button
+            class="mode-btn active"
+            id="textMode"
+        >
+            T &nbsp; Text to Sign
+        </button>
+
+        <button
+            class="mode-btn"
+            id="signMode"
+        >
+            ✋ Sign to Text
+        </button>
+
+        <button class="swap-btn">
+            ⇄
+        </button>
+
+    </div>
+
+
+    <!-- Translator -->
+
+    <div class="translator-box">
+
+        <div class="translation-columns">
+
+
+            <!-- TEXT -->
+
+            <div class="translation-column">
+
+                <h3>
+                    TYPE YOUR TEXT
+                </h3>
+
+                <textarea
+                    id="translationInput"
+                    class="text-area"
+                    placeholder="Type something to translate into sign language..."
+                ></textarea>
+
+
+                <div class="quick-buttons">
+
+                    <button
+                        class="quick-btn"
+                        data-text="Hello"
+                    >
+                        Hello
+                    </button>
+
+                    <button
+                        class="quick-btn"
+                        data-text="Thank you"
+                    >
+                        Thank you
+                    </button>
+
+                    <button
+                        class="quick-btn"
+                        data-text="I love you"
+                    >
+                        I love you
+                    </button>
+
+                    <button
+                        class="quick-btn"
+                        data-text="How are you"
+                    >
+                        How are you
+                    </button>
+
+                    <button
+                        class="quick-btn"
+                        data-text="Good morning"
+                    >
+                        Good morning
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- OUTPUT -->
+
+            <div class="translation-column">
+
+                <h3>
+                    SIGN TRANSLATION
+                </h3>
+
+                <div
+                    class="sign-output"
+                    id="signOutput"
+                >
+
+                    <div class="hand">
+                        ✋
+                    </div>
+
+                    <div>
+                        Translation will appear here
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <button
+            class="translate-action"
+            id="translateButton"
+        >
+            ✨ Translate
+        </button>
+
+    </div>
+
+
+    <!-- FEATURES -->
+
+    <div class="feature-grid">
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                📹
+            </div>
+
+            <h3>
+                Real-Time Detection
+            </h3>
+
+            <p>
+                AI recognizes signs from your camera feed instantly
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                ✨
+            </div>
+
+            <h3>
+                AI Translation
+            </h3>
+
+            <p>
+                Convert text to sign language sequences automatically
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                🔊
+            </div>
+
+            <h3>
+                Voice Output
+            </h3>
+
+            <p>
+                Hear translated text spoken aloud with text-to-speech
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================================
+     DICTIONARY PAGE
+========================================================= -->
+
+<section
+    id="dictionary"
+    class="page dictionary-page"
+>
+
+<div class="container">
+
+    <h1 class="section-title">
+        Sign Language Dictionary
+    </h1>
+
+    <p class="section-subtitle">
+        Browse 86+ ASL signs with detailed descriptions and hand shapes
+    </p>
+
+
+    <!-- Search -->
+
+    <div class="search-box">
+
+        <input
+            type="text"
+            id="dictionarySearch"
+            placeholder="🔍  Search for a sign..."
+        >
+
+    </div>
+
+
+    <!-- Categories -->
+
+    <div class="categories">
+
+        <button
+            class="category-btn active"
+            data-category="All"
+        >
+            All Signs
+        </button>
+
+        <button
+            class="category-btn"
+            data-category="Greetings"
+        >
+            👋 Greetings
+        </button>
+
+        <button
+            class="category-btn"
+            data-category="Alphabet"
+        >
+            T Alphabet
+        </button>
+
+        <button
+            class="category-btn"
+            data-category="Numbers"
+        >
+            # Numbers
+        </button>
+
+        <button
+            class="category-btn"
+            data-category="Phrases"
+        >
+            ▢ Phrases
+        </button>
+
+        <button
+            class="category-btn"
+            data-category="Emotions"
+        >
+            ☺ Emotions
+        </button>
+
+        <button
+            class="category-btn"
+            data-category="Common"
+        >
+            📖 Common Words
+        </button>
+
+    </div>
+
+
+    <div
+        class="sign-count"
+        id="signCount"
+    >
+        86 signs found
+    </div>
+
+
+    <!-- Dictionary Cards -->
+
+    <div
+        class="sign-grid"
+        id="signGrid"
+    ></div>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================================
+     HISTORY PAGE
+========================================================= -->
+
+<section
+    id="history"
+    class="page history-page"
+>
+
+<div class="container">
+
+    <h1 class="section-title">
+        Translation History
+    </h1>
+
+    <p class="section-subtitle">
+        Your recent translations are saved automatically
+    </p>
+
+
+    <!-- Empty -->
+
+    <div
+        class="history-empty"
+        id="historyEmpty"
+    >
+
+        <div class="history-empty-icon">
+            ♢
+        </div>
+
+        <h2>
+            No translations yet
+        </h2>
+
+        <p>
+            Start translating to see your history here
+        </p>
+
+    </div>
+
+
+    <!-- History list -->
+
+    <div
+        class="history-list"
+        id="historyList"
+    ></div>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================================
+     LEARN PAGE
+========================================================= -->
+
+<section
+    id="learn"
+    class="page learn-page"
+>
+
+<div class="container">
+
+    <h1 class="section-title">
+        Learn Sign Language
+    </h1>
+
+    <p class="section-subtitle">
+        Structured lessons to take you from beginner to confident communicator
+    </p>
+
+
+    <!-- Overall progress -->
+
+    <div class="progress-box">
+
+        <div class="progress-top">
+
+            <div class="progress-title">
+                Your Progress
+            </div>
+
+            <div
+                class="progress-percent"
+                id="overallPercent"
+            >
+                0%
+            </div>
+
+        </div>
+
+
+        <div class="progress-track">
+
+            <div
+                class="progress-fill"
+                id="overallProgress"
+            ></div>
+
+        </div>
+
+
+        <div
+            class="progress-info"
+            id="progressText"
+        >
+            0 of 16 topics completed
+        </div>
+
+    </div>
+
+
+    <!-- Lessons -->
+
+    <div class="lesson-grid">
+
+
+        <!-- ASL BASICS -->
+
+        <div
+            class="lesson-card"
+            data-topic-count="4"
+        >
+
+            <div class="lesson-header">
+
+                <div class="lesson-icon">
+                    📖
+                </div>
+
+                <div class="lesson-info">
+
+                    <h2>
+                        ASL Basics
+                    </h2>
+
+                    <p>
+                        Learn the fundamentals of American Sign Language
+                    </p>
+
+                </div>
+
+                <div class="lesson-arrow">
+                    ›
+                </div>
+
+            </div>
+
+
+            <div class="lesson-progress">
+
+                <div class="lesson-progress-track">
+
+                    <div class="lesson-progress-fill"></div>
+
+                </div>
+
+                <span class="lesson-percent">
+                    0%
+                </span>
+
+            </div>
+
+
+            <div class="lesson-content">
+
+                <div class="lesson-item">
+
+                    <span class="lesson-circle"></span>
+
+                    Understanding the ASL alphabet
+
+                </div>
+
+                <div class="lesson-item">
+
+                    <span class="lesson-circle"></span>
+
+                    Numbers 1-10
+
+                </div>
+
+                <div class="lesson-item">
+
+                    <span class="lesson-circle"></span>
+
+                    Basic greetings and introductions
+
+                </div>
+
+                <div class="lesson-item">
+
+                    <span class="lesson-circle"></span>
+
+                    Common everyday phrases
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GRAMMAR -->
+
+        <div
+            class="lesson-card"
+            data-topic-count="4"
+        >
+
+            <div class="lesson-header">
+
+                <div class="lesson-icon">
+                    🧠
+                </div>
+
+                <div class="lesson-info">
+
+                    <h2>
+                        ASL Grammar
+                    </h2>
+
+                    <p>
+                        Master the unique grammar structure of sign language
+                    </p>
+
+                </div>
+
+                <div class="lesson-arrow">
+                    ›
+                </div>
+
+            </div>
+
+
+            <div class="lesson-progress">
+
+                <div class="lesson-progress-track">
+
+                    <div class="lesson-progress-fill"></div>
+
+                </div>
+
+                <span class="lesson-percent">
+                    0%
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- DEAF CULTURE -->
+
+        <div
+            class="lesson-card"
+            data-topic-count="4"
+        >
+
+            <div class="lesson-header">
+
+                <div class="lesson-icon">
+                    👥
+                </div>
+
+                <div class="lesson-info">
+
+                    <h2>
+                        Deaf Culture
+                    </h2>
+
+                    <p>
+                        Understand the rich culture and history of the Deaf community
+                    </p>
+
+                </div>
+
+                <div class="lesson-arrow">
+                    ›
+                </div>
+
+            </div>
+
+
+            <div class="lesson-progress">
+
+                <div class="lesson-progress-track">
+
+                    <div class="lesson-progress-fill"></div>
+
+                </div>
+
+                <span class="lesson-percent">
+                    0%
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRACTICE -->
+
+        <div
+            class="lesson-card"
+            data-topic-count="4"
+        >
+
+            <div class="lesson-header">
+
+                <div class="lesson-icon">
+                    🎓
+                </div>
+
+                <div class="lesson-info">
+
+                    <h2>
+                        Practice & Fluency
+                    </h2>
+
+                    <p>
+                        Build speed and confidence with guided exercises
+                    </p>
+
+                </div>
+
+                <div class="lesson-arrow">
+                    ›
+                </div>
+
+            </div>
+
+
+            <div class="lesson-progress">
+
+                <div class="lesson-progress-track">
+
+                    <div class="lesson-progress-fill"></div>
+
+                </div>
+
+                <span class="lesson-percent">
+                    0%
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer class="footer">
+
+    <div class="footer-text">
+        AI-powered sign language translation — bridging the communication gap
+    </div>
+
+    <div class="footer-bottom">
+        Built with
+        <span class="heart">♥</span>
+        for accessibility
+    </div>
+
+</footer>
+
+
+
+<script>
+
+/* =========================================================
+   PAGE NAVIGATION
+========================================================= */
+
+const pages =
+    document.querySelectorAll(".page");
+
+const navLinks =
+    document.querySelectorAll(".nav-link");
+
+
+function showPage(pageName) {
+
+    pages.forEach(page => {
+
+        page.classList.remove("active");
+
+    });
+
+
+    const selected =
+        document.getElementById(pageName);
+
+    if (selected) {
+
+        selected.classList.add("active");
+
+    }
+
+
+    navLinks.forEach(link => {
+
+        link.classList.remove("active");
+
+        if (
+            link.dataset.page === pageName
+        ) {
+
+            link.classList.add("active");
+
+        }
+
+    });
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+navLinks.forEach(link => {
+
+    link.addEventListener(
+        "click",
+        function(event) {
+
+            event.preventDefault();
+
+            showPage(
+                this.dataset.page
+            );
+
+        }
+    );
+
+});
+
+
+
+/* =========================================================
+   TRANSLATOR
+========================================================= */
+
+const input =
+    document.getElementById(
+        "translationInput"
+    );
+
+const output =
+    document.getElementById(
+        "signOutput"
+    );
+
+const translateButton =
+    document.getElementById(
+        "translateButton"
+    );
+
+
+const quickButtons =
+    document.querySelectorAll(
+        ".quick-btn"
+    );
+
+
+quickButtons.forEach(button => {
+
+    button.addEventListener(
+        "click",
+        function() {
+
+            input.value =
+                this.dataset.text;
+
+            translateText();
+
+        }
+    );
+
+});
+
+
+function translateText() {
+
+    const text =
+        input.value.trim();
+
+    if (!text) {
+
+        output.innerHTML = `
+
+            <div class="hand">
+                ✋
+            </div>
+
+            <div>
+                Please enter some text
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    let emoji = "✋";
+
+
+    const lower =
+        text.toLowerCase();
+
+
+    if (lower.includes("hello")) {
+
+        emoji = "👋";
+
+    }
+
+    else if (
+        lower.includes("thank")
+    ) {
+
+        emoji = "🙏";
+
+    }
+
+    else if (
+        lower.includes("love")
+    ) {
+
+        emoji = "🤟";
+
+    }
+
+    else if (
+        lower.includes("morning")
+    ) {
+
+        emoji = "🌅";
+
+    }
+
+    else if (
+        lower.includes("how are")
+    ) {
+
+        emoji = "🤝";
+
+    }
+
+
+    output.innerHTML = `
+
+        <div class="hand">
+            ${emoji}
+        </div>
+
+        <div class="sign-result">
+            ${text}
+        </div>
+
+    `;
+
+
+    saveHistory(
+        text,
+        emoji + " " + text
+    );
+
+}
+
+
+translateButton.addEventListener(
+    "click",
+    translateText
+);
+
+
+
+/* =========================================================
+   MODE BUTTONS
+========================================================= */
+
+const textMode =
+    document.getElementById(
+        "textMode"
+    );
+
+const signMode =
+    document.getElementById(
+        "signMode"
+    );
+
+
+textMode.addEventListener(
+    "click",
+    function() {
+
+        textMode.classList.add(
+            "active"
+        );
+
+        signMode.classList.remove(
+            "active"
+        );
+
+    }
+);
+
+
+signMode.addEventListener(
+    "click",
+    function() {
+
+        signMode.classList.add(
+            "active"
+        );
+
+        textMode.classList.remove(
+            "active"
+        );
+
+    }
+);
+
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+function saveHistory(
+    original,
+    translated
+) {
+
+    let history =
+        JSON.parse(
+            localStorage.getItem(
+                "signSpeakHistory"
+            )
+        ) || [];
+
+
+    history.unshift({
+
+        original:
+            original,
+
+        translated:
+            translated,
+
+        date:
+            new Date().toLocaleString()
+
+    });
+
+
+    history =
+        history.slice(0, 30);
+
+
+    localStorage.setItem(
+        "signSpeakHistory",
+        JSON.stringify(history)
+    );
+
+
+    loadHistory();
+
+}
+
+
+function loadHistory() {
+
+    const list =
+        document.getElementById(
+            "historyList"
+        );
+
+    const empty =
+        document.getElementById(
+            "historyEmpty"
+        );
+
+
+    let history =
+        JSON.parse(
+            localStorage.getItem(
+                "signSpeakHistory"
+            )
+        ) || [];
+
+
+    list.innerHTML = "";
+
+
+    if (
+        history.length === 0
+    ) {
+
+        empty.style.display =
+            "flex";
+
+        return;
+
+    }
+
+
+    empty.style.display =
+        "none";
+
+
+    history.forEach(item => {
+
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className =
+            "history-card";
+
+
+        card.innerHTML = `
+
+            <div>
+
+                <div class="history-original">
+                    ${escapeHTML(item.original)}
+                </div>
+
+                <div class="history-translated">
+                    ${escapeHTML(item.translated)}
+                </div>
+
+                <div class="history-date">
+                    ${escapeHTML(item.date)}
+                </div>
+
+            </div>
+
+        `;
+
+
+        list.appendChild(card);
+
+    });
+
+}
+
+
+function escapeHTML(text) {
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+loadHistory();
+
+
+
+/* =========================================================
+   DICTIONARY DATA
+========================================================= */
+
+const signs = [
+
+    ["👋", "Hello", "Greetings"],
+    ["👋", "Goodbye", "Greetings"],
+    ["🙏", "Thank You", "Greetings"],
+    ["🙌", "Please", "Greetings"],
+    ["😔", "Sorry", "Greetings"],
+    ["🤗", "Welcome", "Greetings"],
+
+    ["✊", "A", "Alphabet"],
+    ["🖐️", "B", "Alphabet"],
+    ["🤏", "C", "Alphabet"],
+    ["👌", "D", "Alphabet"],
+    ["☝️", "E", "Alphabet"],
+    ["🤙", "F", "Alphabet"],
+    ["👉", "G", "Alphabet"],
+    ["✌️", "H", "Alphabet"],
+    ["🤙", "I", "Alphabet"],
+    ["👍", "J", "Alphabet"],
+    ["✌️", "K", "Alphabet"],
+    ["👉", "L", "Alphabet"],
+    ["✊", "M", "Alphabet"],
+    ["✊", "N", "Alphabet"],
+    ["👌", "O", "Alphabet"],
+    ["👇", "P", "Alphabet"],
+    ["👇", "Q", "Alphabet"],
+    ["☝️", "R", "Alphabet"],
+    ["✊", "S", "Alphabet"],
+    ["✊", "T", "Alphabet"],
+    ["🖐️", "U", "Alphabet"],
+    ["✌️", "V", "Alphabet"],
+    ["🖐️", "W", "Alphabet"],
+    ["🤞", "X", "Alphabet"],
+    ["👍", "Y", "Alphabet"],
+    ["👉", "Z", "Alphabet"],
+
+    ["☝️", "1", "Numbers"],
+    ["✌️", "2", "Numbers"],
+    ["🤟", "3", "Numbers"],
+    ["🖐️", "4", "Numbers"],
+    ["🖐️", "5", "Numbers"],
+    ["👍", "6", "Numbers"],
+    ["🤙", "7", "Numbers"],
+    ["👌", "8", "Numbers"],
+    ["👌", "9", "Numbers"],
+    ["👍", "10", "Numbers"],
+
+    ["🤟", "I Love You", "Phrases"],
+    ["🤝", "How Are You", "Phrases"],
+    ["🤝", "Nice to Meet You", "Phrases"],
+    ["❓", "What is Your Name", "Phrases"],
+    ["👤", "My Name Is", "Phrases"],
+    ["👀", "See You Later", "Phrases"],
+    ["🆘", "Help", "Phrases"],
+    ["🚫", "No", "Phrases"],
+    ["✅", "Yes", "Phrases"],
+    ["🧑‍🤝‍🧑", "Friend", "Phrases"],
+    ["👨‍👩‍👧", "Family", "Phrases"],
+    ["💧", "Water", "Phrases"],
+    ["🍽️", "Eat", "Phrases"],
+    ["🥤", "Drink", "Phrases"],
+    ["🏠", "Home", "Phrases"],
+
+    ["😊", "Happy", "Emotions"],
+    ["😢", "Sad", "Emotions"],
+    ["😡", "Angry", "Emotions"],
+    ["😨", "Scared", "Emotions"],
+    ["😄", "Excited", "Emotions"],
+    ["❤️", "Love", "Emotions"],
+    ["😴", "Tired", "Emotions"],
+    ["😕", "Confused", "Emotions"],
+
+    ["❓", "Yes/No Question", "Common"],
+    ["🙋", "Who", "Common"],
+    ["📍", "Where", "Common"],
+    ["⏰", "When", "Common"],
+    ["🤷", "Why", "Common"],
+    ["🔄", "How", "Common"],
+    ["➕", "More", "Common"],
+    ["✋", "Stop", "Common"],
+    ["👉", "Go", "Common"],
+    ["👍", "Good", "Common"],
+    ["👎", "Bad", "Common"],
+    ["📚", "Learn", "Common"],
+    ["💡", "Understand", "Common"],
+    ["💼", "Work", "Common"],
+    ["🎮", "Play", "Common"],
+    ["⏰", "Time", "Common"],
+    ["☀️", "Day", "Common"],
+    ["🌙", "Night", "Common"],
+    ["📅", "Today", "Common"],
+    ["📆", "Tomorrow", "Common"],
+    ["📆", "Yesterday", "Common"]
+
+];
+
+
+const signGrid =
+    document.getElementById(
+        "signGrid"
+    );
+
+const signCount =
+    document.getElementById(
+        "signCount"
+    );
+
+const searchInput =
+    document.getElementById(
+        "dictionarySearch"
+    );
+
+let selectedCategory =
+    "All";
+
+
+function renderSigns() {
+
+    const search =
+        searchInput.value
+            .toLowerCase()
+            .trim();
+
+
+    const filtered =
+        signs.filter(sign => {
+
+            const emoji =
+                sign[0];
+
+            const name =
+                sign[1];
+
+            const category =
+                sign[2];
+
+
+            const categoryMatch =
+                selectedCategory === "All" ||
+                category === selectedCategory;
+
+
+            const searchMatch =
+                name
+                    .toLowerCase()
+                    .includes(search) ||
+                category
+                    .toLowerCase()
+                    .includes(search);
+
+
+            return (
+                categoryMatch &&
+                searchMatch
+            );
+
+        });
+
+
+    signGrid.innerHTML = "";
+
+
+    filtered.forEach(sign => {
+
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className =
+            "sign-card";
+
+
+        card.innerHTML = `
+
+            <div class="sign-emoji">
+                ${sign[0]}
+            </div>
+
+            <h3>
+                ${sign[1]}
+            </h3>
+
+            <div class="sign-category">
+                ${sign[2]}
+            </div>
+
+        `;
+
+
+        signGrid.appendChild(card);
+
+    });
+
+
+    signCount.textContent =
+        filtered.length +
+        " signs found";
+
+}
+
+
+searchInput.addEventListener(
+    "input",
+    renderSigns
+);
+
+
+document
+    .querySelectorAll(
+        ".category-btn"
+    )
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            function() {
+
+                document
+                    .querySelectorAll(
+                        ".category-btn"
+                    )
+                    .forEach(btn =>
+                        btn.classList.remove(
+                            "active"
+                        )
+                    );
+
+
+                this.classList.add(
+                    "active"
+                );
+
+
+                selectedCategory =
+                    this.dataset.category;
+
+
+                renderSigns();
+
+            }
+        );
+
+    });
+
+
+renderSigns();
+
+
+
+/* =========================================================
+   LEARNING SYSTEM
+========================================================= */
+
+const lessonItems =
+    document.querySelectorAll(
+        ".lesson-item"
+    );
+
+
+lessonItems.forEach(
+    (item, index) => {
+
+        item.addEventListener(
+            "click",
+            function(event) {
+
+                event.stopPropagation();
+
+                this.classList.toggle(
+                    "completed"
+                );
+
+                saveLearningProgress();
+
+                updateLearningProgress();
+
+            }
+        );
+
+    }
+);
+
+
+/* Expand cards */
+
+document
+    .querySelectorAll(
+        ".lesson-card"
+    )
+    .forEach(card => {
+
+        card.addEventListener(
+            "click",
+            function() {
+
+                const content =
+                    this.querySelector(
+                        ".lesson-content"
+                    );
+
+
+                if (!content) {
+                    return;
+                }
+
+
+                const isOpen =
+                    content.style.display ===
+                    "block";
+
+
+                content.style.display =
+                    isOpen
+                        ? "none"
+                        : "block";
+
+            }
+        );
+
+    });
+
+
+function updateLearningProgress() {
+
+    const completed =
+        document.querySelectorAll(
+            ".lesson-item.completed"
+        ).length;
+
+
+    const total = 16;
+
+
+    const percent =
+        Math.round(
+            (completed / total) * 100
+        );
+
+
+    document.getElementById(
+        "overallPercent"
+    ).textContent =
+        percent + "%";
+
+
+    document.getElementById(
+        "overallProgress"
+    ).style.width =
+        percent + "%";
+
+
+    document.getElementById(
+        "progressText"
+    ).textContent =
+        completed +
+        " of " +
+        total +
+        " topics completed";
+
+
+    document
+        .querySelectorAll(
+            ".lesson-card"
+        )
+        .forEach(card => {
+
+            const items =
+                card.querySelectorAll(
+                    ".lesson-item"
+                );
+
+
+            if (
+                items.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            const done =
+                card.querySelectorAll(
+                    ".lesson-item.completed"
+                ).length;
+
+
+            const cardPercent =
+                Math.round(
+                    (done / items.length) * 100
+                );
+
+
+            const fill =
+                card.querySelector(
+                    ".lesson-progress-fill"
+                );
+
+            const percentText =
+                card.querySelector(
+                    ".lesson-percent"
+                );
+
+
+            if (fill) {
+
+                fill.style.width =
+                    cardPercent + "%";
+
+            }
+
+
+            if (percentText) {
+
+                percentText.textContent =
+                    cardPercent + "%";
+
+            }
+
+        });
+
+}
+
+
+function saveLearningProgress() {
+
+    const completed = [];
+
+
+    document
+        .querySelectorAll(
+            ".lesson-item"
+        )
+        .forEach(
+            (item, index) => {
+
+                if (
+                    item.classList.contains(
+                        "completed"
+                    )
+                ) {
+
+                    completed.push(index);
+
+                }
+
+            }
+        );
+
+
+    localStorage.setItem(
+        "signSpeakLearning",
+        JSON.stringify(
+            completed
+        )
+    );
+
+}
+
+
+function loadLearningProgress() {
+
+    const completed =
+        JSON.parse(
+            localStorage.getItem(
+                "signSpeakLearning"
+            )
+        ) || [];
+
+
+    document
+        .querySelectorAll(
+            ".lesson-item"
+        )
+        .forEach(
+            (item, index) => {
+
+                if (
+                    completed.includes(index)
+                ) {
+
+                    item.classList.add(
+                        "completed"
+                    );
+
+                }
+
+            }
+        );
+
+
+    updateLearningProgress();
+
+}
+
+
+loadLearningProgress();
+
+</script>
+
+</body>
+</html>
